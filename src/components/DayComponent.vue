@@ -45,12 +45,28 @@
           <button class="danger" @click="newEntry = null">Cancel</button>
         </div>
       </div>
-      <EntryComponent
-        v-for="(e, i) in day.entries"
-        :entry="e"
-        :index="i"
-      />
-      <em v-if="!day.entries.length">No entries for this day</em>
+      <table v-if="day.entries.length" class="entries-wrapper">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>From</th>
+            <th>To</th>
+            <th>Hours</th>
+            <th>Rate</th>
+            <th>Total</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <EntryComponent
+            v-for="(e, i) in day.entries"
+            :entry="e"
+            :index="i"
+            @delete-entry="deleteEntry(i)"
+          />
+        </tbody>
+      </table>
+      <em v-else>No entries for this day</em>
     </div>
   </div>
 </template>
@@ -61,6 +77,7 @@ import VueDatePicker from '@vuepic/vue-datepicker'
 import '@vuepic/vue-datepicker/dist/main.css'
 
 export default {
+  emits: ['update-activity'],
   components: {
     VueDatePicker,
     EntryComponent
@@ -70,7 +87,7 @@ export default {
   },
   data () {
     return {
-      showing: true,
+      showing: false,
       newEntry: null,
       baseEntry: {
         desc: '',
@@ -83,8 +100,8 @@ export default {
     }
   },
   mounted () {
-    if (this.isPast()) {
-      this.showing = false
+    if (this.isToday()) {
+      this.showing = true
     }
   },
   computed: {
@@ -93,14 +110,14 @@ export default {
     }
   },
   methods: {
-    isPast () {
+    isToday () {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
 
       const check = new Date(this.day.date)
       check.setHours(0, 0, 0, 0)
 
-      return check.getTime() < today.getTime()
+      return check.getTime() === today.getTime()
     },
     createEntry () {
       if (this.newEntry.desc && this.newEntry.from && this.newEntry.to) {
@@ -108,7 +125,26 @@ export default {
         const toHrs = this.newEntry.to.hours + (this.newEntry.to.minutes / 60)
         this.newEntry.hrs = toHrs - fromHrs
         this.newEntry.total = this.newEntry.hrs * this.newEntry.rate
+
+        const activity = JSON.parse(localStorage.getItem('mf_activity_tracker'))
+        activity.days.forEach(d => {
+          if (d.date === this.day.date) {
+            d.entries.push(this.newEntry)
+          }
+        })
         this.newEntry = null
+        this.$emit('update-activity', activity)
+      }
+    },
+    deleteEntry (index) {
+      if (confirm('Are you sure you want to delete this entry?')) {
+        const activity = JSON.parse(localStorage.getItem('mf_activity_tracker'))
+        activity.days.forEach(d => {
+          if (d.date === this.day.date) {
+            d.entries.splice(index, 1)
+          }
+        })
+        this.$emit('update-activity', activity)
       }
     }
   }
@@ -126,23 +162,28 @@ export default {
       padding: 0.5em 0;
     }
     .entries-contain {
-      padding-top: 0.5em;
       padding-left: 1em;
       .controls {
+        margin: 1em 0;
         display: flex;
         align-items: center;
         justify-content: space-between;
       }
       .new-entry {
-        margin: 0.5em 0;
+        margin-bottom: 1em;
         padding: 0.5em;
-        border: 1px solid grey;
+        border: 1px solid #2f2f2f;
         border-radius: 0.5em;
         .buttons-contain {
           > button {
             margin-right: 0.5em;
           }
         }
+      }
+      .entries-wrapper {
+        margin-top: 1em;
+        width: 100%;
+        border: 1px solid #2f2f2f;
       }
     }
   }

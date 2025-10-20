@@ -10,21 +10,21 @@
       <label>Period: ({{ activity.days.length }} days): </label>
       <div class="period-input">
         <VueDatePicker
-          :model-value="period"
+          v-model="period"
           range
           :clearable="false"
           :enable-time-picker="false"
           :dark="true"
           :format-locale="enGB"
-          @update:model-value="updatePeriod"
         />
       </div>
-      <button class="danger" @click="clearPeriod"> Clear Period</button>
+      <button class="danger" @click="updatePeriod"> Set Period</button>
     </div>
     <div class="activity-wrapper">
       <DayComponent
         v-for="d in activity.days"
         :day="d"
+        @update-activity="updateActivity"
       />
     </div>
   </main>
@@ -79,17 +79,21 @@ export default {
       localStorage.setItem('mf_activity_tracker', JSON.stringify(toStore))
       this.activity = toStore
     },
-    updatePeriod (val) {
-      if (val[0] && val[1]) {
-        const diffTime = Math.abs(val[1] - val[0])
+    updatePeriod () {
+      if (this.period[0] && this.period[1] && confirm('Are you sure you want to CLEAR the current period and start a new one?')) {
+        const diffTime = Math.abs(this.period[1] - this.period[0])
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        this.startNewActivity(val[0], diffDays)
+        this.startNewActivity(this.period[0], diffDays)
       }
     },
     clearPeriod () {
       if (confirm('Are you sure you want to clear all work items for this period?')) {
         this.startNewActivity()
       }
+    },
+    updateActivity (activity) {
+      localStorage.setItem('mf_activity_tracker', JSON.stringify(activity))
+      this.activity = activity
     }
   }
 }

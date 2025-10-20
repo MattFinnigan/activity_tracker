@@ -1,28 +1,32 @@
 <template>
-  <div :class="['entry-container', { even: index % 2 === 0}]">
-    <div class="desc">
+  <tr :class="['entry-container', { even: index % 2 === 0}]">
+    <td class="desc">
       {{ entry.desc }}
-    </div>
-    <div class="from">
-      {{ entry.from }}
-    </div>
-    <div class="to">
-      {{ entry.to }}
-    </div>
-    <div class="hrs">
+    </td>
+    <td class="from">
+      {{ entry.from.hours }}:{{ entry.from.minutes }}
+    </td>
+    <td class="to">
+      {{ entry.to.hours }}:{{ entry.to.minutes }}
+    </td>
+    <td class="hrs">
       {{ entry.hrs }}
-    </div>
-    <div class="rate">
+    </td>
+    <td class="rate">
       {{ entry.rate }}
-    </div>
-    <div class="total">
+    </td>
+    <td class="total">
       {{ entry.total }}
-    </div>
-  </div>
+    </td>
+    <td class="controls">
+      <button class="danger" @click="$emit('delete-entry')">Delete</button>
+    </td>
+  </tr>
 </template>
 
 <script>
 export default {
+  emits: ['delete-entry'],
   props: {
     entry: {},
     index: {}
@@ -32,17 +36,24 @@ export default {
 
 <style scoped>
   .entry-container {
-    border: 1px solid grey;
+    border: 1px solid #2f2f2f;
     &.even {
-      background: grey;
+      background: #2f2f2f;
     }
-    > div {
+    > td {
       padding: 10px;
-      border-right: 1px solid grey;
+      border-right: 1px solid #2f2f2f;
+      text-align: center;
       &:last-child {
         border-right: none;
       }
+      &.desc {
+        text-align: left;
+      }
+      &.controls {
+        width: 50px;
+      }
     }
-    
+
   }
 </style>
