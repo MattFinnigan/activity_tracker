@@ -1,7 +1,7 @@
 <template>
   <tr :class="['entry-container', { even: index % 2 === 0}]">
     <td class="desc">
-      {{ entry.desc }}
+      <span v-html="entry.desc"></span>
     </td>
     <td class="from">
       {{ entry.from.hours.toString().padStart(2, '0') }}:{{ entry.from.minutes.toString().padStart(2, '0') }}
@@ -49,6 +49,7 @@ export default {
       }
       &.desc {
         text-align: left;
+        white-space: pre-line;
       }
       &.controls {
         width: 50px;

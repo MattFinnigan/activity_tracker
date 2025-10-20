@@ -12,7 +12,7 @@
       <div v-if="newEntry" class="new-entry">
         <div class="input-contain">
           <div>Description</div>
-          <input type="text" name="desc" id="desc" v-model="newEntry.desc"/>
+          <textarea type="text" name="desc" id="desc" v-model="newEntry.desc"/>
         </div>
         <div class="input-contain">
           <label>

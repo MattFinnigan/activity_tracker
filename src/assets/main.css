@@ -36,7 +36,7 @@ button {
   }
 }
 
-input {
+input, textarea {
   background: #212121;
   border: 1px solid #2d2d2d;
   border-radius: 0.25em;
@@ -44,6 +44,10 @@ input {
   outline: none;
   padding: 0.4em;
   font-size: 1em;
+}
+
+textarea {
+  width: 300px;
 }
 
 .input-contain {
