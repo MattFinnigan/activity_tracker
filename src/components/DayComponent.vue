@@ -7,7 +7,7 @@
     <div v-show="showing" class="entries-contain">
       <div class="controls">
         <div class="totals">{{ totals }}</div>
-        <button class="success" @click="newEntry = baseEntry">New Entry</button>
+        <button class="success" @click="newEntry = JSON.parse(JSON.stringify(baseEntry))">New Entry</button>
       </div>
       <div v-if="newEntry" class="new-entry">
         <div class="input-contain">
