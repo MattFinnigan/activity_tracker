@@ -1,8 +1,9 @@
 <template>
   <header>
     <div>
-      <h1>Activity Tracker</h1>
+      <h1>Activity Tracker</h1> 
     </div>
+    <button class="success" @click="exportToCSV">Export</button>
   </header>
 
   <main v-if="activity">
@@ -19,6 +20,17 @@
         />
       </div>
       <button class="danger" @click="updatePeriod"> Set Period</button>
+    </div>
+    <div class="overview">
+      <div class="totals" v-html="totals"></div>
+      <hr />
+      <div class="goals">
+        <div>
+          <label>Target: </label>
+          <input type="number" v-model="goalHrs"/>
+        </div>
+        <div v-html="goals"></div>
+      </div>
     </div>
     <div class="activity-wrapper">
       <DayComponent
@@ -45,7 +57,8 @@ export default {
     return {
       enGB,
       period: null,
-      activity: null
+      activity: null,
+      goalHrs: 100
     }
   },
   mounted () {
@@ -55,6 +68,46 @@ export default {
       this.period = this.activity.period
     } else {
       this.startNewActivity()
+    }
+  },
+  computed: {
+    totals () {
+      const hrs = this.activity.days.reduce((sum, day) => {
+        return sum + day.entries.reduce((entrySum, e) => entrySum + (e.hrs || 0), 0)
+      }, 0)
+
+      const earnings = this.activity.days.reduce((sum, day) => {
+        return sum + day.entries.reduce((entrySum, e) => entrySum + ((e.hrs || 0) * (e.rate || 0)), 0)
+      }, 0)
+
+      return `Hours: <strong>${hrs}</strong>, Earnings: <strong>$${earnings.toFixed(2)}</strong>`
+    },
+    goals () {
+      const diffTime = Math.abs(new Date(this.period[1]) - new Date())
+      const daysRemaining = (Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1) - this.weekendCount
+      const hrs = this.activity.days.reduce((sum, day) => {
+        return sum + day.entries.reduce((entrySum, e) => entrySum + (e.hrs || 0), 0)
+      }, 0)
+      const avgNeeded = ((this.goalHrs - hrs) / daysRemaining).toFixed(1)
+
+      return `Days remaining: ${daysRemaining}. Avg needed: ${avgNeeded}`
+    },
+    weekendCount () {
+      const start = new Date(this.period[0])
+      const end = new Date(this.period[1])
+      let count = 0
+
+      start.setHours(0, 0, 0, 0)
+      end.setHours(0, 0, 0, 0)
+
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const day = d.getDay()
+        if (day === 0 || day === 6) {
+          count++
+        }
+      }
+
+      return count
     }
   },
   methods: {
@@ -94,12 +147,57 @@ export default {
     updateActivity (activity) {
       localStorage.setItem('mf_activity_tracker', JSON.stringify(activity))
       this.activity = activity
+    },
+    exportToCSV () {
+      const rows = [['Date', 'Descriptions', 'Hours', 'Rate', 'Total']]
+      this.activity.days.forEach(day => {
+        if (!day.entries || day.entries.length === 0) {
+          return
+        }
+        const descriptions = day.entries.map(e => e.desc).join('\n')
+        const rate = day.entries[0]?.rate || 0
+        const hrs = day.entries.reduce((sum, e) => sum + (e.hrs || 0), 0)
+        const total = day.entries.reduce((sum, e) => sum + (parseFloat(e.total) || 0), 0)
+
+        rows.push([day.dateStr, descriptions, hrs, rate, total.toFixed(2)])
+      })
+
+      const csvContent = rows.map(r => r.map(v => `"${v}"`).join(',')).join('\r\n')
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.setAttribute('href', url)
+      link.setAttribute('download', 'activity.csv')
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
     }
+
   }
 }
 </script>
 
 <style scoped>
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .overview {
+    margin: 2em 0;
+    .goals {
+      display: flex;
+      align-items: center;
+      > div {
+        margin-right: 0.5em;
+      }
+    }
+  }
+  hr {
+    margin: 1em 0;
+  }
   .period-container {
     display: flex;
     align-items: center;

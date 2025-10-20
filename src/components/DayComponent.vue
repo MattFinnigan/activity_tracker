@@ -106,7 +106,10 @@ export default {
   },
   computed: {
     totals () {
-      return 'Totals: '
+      const hrs = this.day.entries.reduce((sum, e) => sum + (e.hrs || 0), 0)
+      const earnings = this.day.entries.reduce((sum, e) => sum + ((e.hrs || 0) * (e.rate || 0)), 0)
+
+      return `Hours: ${hrs}, Earnings: $${earnings.toFixed(2)}`
     }
   },
   methods: {
@@ -123,8 +126,8 @@ export default {
       if (this.newEntry.desc && this.newEntry.from && this.newEntry.to) {
         const fromHrs = this.newEntry.from.hours + (this.newEntry.from.minutes / 60)
         const toHrs = this.newEntry.to.hours + (this.newEntry.to.minutes / 60)
-        this.newEntry.hrs = toHrs - fromHrs
-        this.newEntry.total = this.newEntry.hrs * this.newEntry.rate
+        this.newEntry.hrs = parseFloat((toHrs - fromHrs).toFixed(1))
+        this.newEntry.total = `${(this.newEntry.hrs * this.newEntry.rate).toFixed(2)}`
 
         const activity = JSON.parse(localStorage.getItem('mf_activity_tracker'))
         activity.days.forEach(d => {

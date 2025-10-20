@@ -4,10 +4,10 @@
       {{ entry.desc }}
     </td>
     <td class="from">
-      {{ entry.from.hours }}:{{ entry.from.minutes }}
+      {{ entry.from.hours.toString().padStart(2, '0') }}:{{ entry.from.minutes.toString().padStart(2, '0') }}
     </td>
     <td class="to">
-      {{ entry.to.hours }}:{{ entry.to.minutes }}
+      {{ entry.to.hours.toString().padStart(2, '0') }}:{{ entry.to.minutes.toString().padStart(2, '0') }}
     </td>
     <td class="hrs">
       {{ entry.hrs }}
