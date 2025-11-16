@@ -84,16 +84,18 @@ export default {
     },
     goals () {
       const diffTime = Math.abs(new Date(this.period[1]) - new Date())
-      const daysRemaining = (Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1) - this.weekendCount
+      const daysRemaining = Math.ceil(diffTime / 1000 / 60 / 60 / 24) - this.weekendCount(new Date())
       const hrs = this.activity.days.reduce((sum, day) => {
         return sum + day.entries.reduce((entrySum, e) => entrySum + (e.hrs || 0), 0)
       }, 0)
       const avgNeeded = ((this.goalHrs - hrs) / daysRemaining).toFixed(1)
 
       return `Days remaining: ${daysRemaining}. Avg needed: ${avgNeeded}`
-    },
-    weekendCount () {
-      const start = new Date(this.period[0])
+    }
+  },
+  methods: {
+    weekendCount (from) {
+      const start = new Date(from)
       const end = new Date(this.period[1])
       let count = 0
 
@@ -108,9 +110,7 @@ export default {
       }
 
       return count
-    }
-  },
-  methods: {
+    },
     startNewActivity (from = new Date(), days = 30) {
       localStorage.removeItem('mf_activity_tracker')
       this.activity = null
@@ -121,7 +121,7 @@ export default {
         const date = new Date(new Date().setDate(from.getDate() + i))
         daysArr.push({
           date,
-          dateStr: date.getDate() + '/' + date.getMonth(),
+          dateStr: date.getDate() + '/' + (date.getMonth() + 1),
           entries: []
         })
       }
@@ -134,9 +134,9 @@ export default {
     },
     updatePeriod () {
       if (this.period[0] && this.period[1] && confirm('Are you sure you want to CLEAR the current period and start a new one?')) {
-        const diffTime = Math.abs(this.period[1] - this.period[0])
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        this.startNewActivity(this.period[0], diffDays)
+        const diffTime = Math.abs(new Date(this.period[1]) - new Date(this.period[0]))
+        const diffDays = Math.ceil(diffTime / 1000 / 60 / 60 / 24)
+        this.startNewActivity(new Date(this.period[0]), diffDays)
       }
     },
     clearPeriod () {
